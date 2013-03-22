@@ -1,0 +1,86 @@
+#!/usr/bin/ruby
+
+require 'rubygems'
+require 'cgi'
+require 'date'
+require 'json'
+require 'net/https'
+require 'syslog'
+
+syslog = Syslog.open("idsdiscover", Syslog::LOG_PID, Syslog::LOG_USER)
+
+#$SAFE=1
+
+configs = {
+  'oldopx' => {
+    'apiKey' => 'old opx api key',
+    'postBackURL' => 'https://opxsen.opx.janrain.ws/ows_auth',
+    'returnToURL' => 'https://opxsen.opx.janrain.ws/ows_return',
+  },
+  'newopx' => {
+    'apiKey' => 'new opx api key',
+    'postBackURL' => 'https://opx.cmdev.com/postback',
+    'returnToURL' => 'https://opx.cmdev.com/return',
+  }
+}
+
+opxconfig = configs['oldopx']
+
+now = DateTime.now
+
+c = CGI.new("html4")
+
+userId = c['userid']
+syslog.info("processing request #{userId} from #{c.referer}")
+
+if (userId == "") 
+  syslog.info("No user supplied, redirecting")
+  c.out {
+    c.html { '<head><title>Login</title></head><body><h1>Login</h1><form method="post" action=""><input type="text" name="userid"/><input type="submit" name="Submit"/></body>' }
+  }
+else
+
+  uri = URI(userId)
+  syslog.info("authenticating #{userId} with #{uri}")
+  http = Net::HTTP.new(uri.host, uri.port)
+  if (uri.scheme == 'https')
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+  end
+
+  request = Net::HTTP::Get.new(uri.request_uri)
+
+  #request['Accept'] = "application/xrds+xml"
+  request['Accept'] = "text/html; q=0.3, application/xhtml+xml; q=0.5, application/xrds+xml"
+
+  response = http.request(request)
+
+  syslog.info(response.code)
+
+  message = response.code
+
+  if(response.code == '200')
+    xrds = response['X-XRDS-Location']
+    if (xrds.nil? || xrds == "")
+      xrds = response.body.match('<meta http-equiv="X-XRDS-Location" content="(.+)"')[1]
+      syslog.info("xrds in body")
+      message = message + " xrds in body: #{xrds}"
+    else
+      syslog.info("xrds in head: #{xrds}")
+      message = message + " xrds in head: #{xrds}"
+    end
+  elsif (response.code == '302')
+    syslog.info("redirect to #{response['Location']}")
+    message = message + " redirect to #{response['Location']}"
+  elsif (response.code == '400')
+    syslog.err("Got #{response.code} #{response.body} from Identity Services")
+    c.out {
+      c.html { "That's an error: #{response.code} #{response.body} (#{now})" }
+    }
+  end
+
+   c.out {
+     c.html { message }
+   }
+
+end

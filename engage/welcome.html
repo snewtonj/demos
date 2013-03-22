@@ -1,0 +1,68 @@
+<html>
+  <head>
+    <link href="http://cdn.quilt.janrain.com/2.1.8/quilt.css" media="all" rel="stylesheet" type="text/css" />
+    <link href="http://cdn.quilt.janrain.com/2.1.7/tables.css" media="all" rel="stylesheet" type="text/css" />
+    <title>Engage/OPX Example</title>
+<script src="prettyprint.js"></script>
+<script>
+var cmDisplayName = 'guest';
+function getCookie(c_name)
+{
+var i,x,y,ARRcookies=document.cookie.split(";");
+for (i=0;i<ARRcookies.length;i++)
+  {
+  x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+  y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+  x=x.replace(/^\s+|\s+$/g,"");
+  if (x==c_name)
+    {
+    return unescape(y.replace(/\+/g, " "));
+    }
+  }
+}
+function setDisplayName()
+{
+  var displayName = unescape(getCookie('cmDisplayName'));
+  if (typeof displayName !== "undefined") {
+    console.log("display name: "+displayName);
+    cmDisplayName = displayName;
+    document.getElementById("cmName").innerHTML = cmDisplayName;
+  }
+
+  var profile = unescape(getCookie('cmProfile'));
+  if (typeof profile !== "undefined") {
+    console.log("profile: "+profile);
+    var parsedProfile = JSON.parse(profile);
+    console.log(parsedProfile.nickname)
+    var ppTable = prettyPrint(parsedProfile)
+    document.getElementById('cmProfile').appendChild(ppTable);
+  }
+}
+</script>
+  </head>
+  <body onload="setDisplayName()">
+    <div class="grid-block">
+    <div class="col3 center_col">
+    <h1>Engage/OPX Example</h1>
+      <p>Hello, <span id="cmName">guest</span></p>
+      <p><a href="/login.html">Log Out</a></p>
+      <p>Profile from Engage/OPX: <div id="cmProfile"></div></p>
+      <p>Veggies sunt bona vobis, proinde vos postulo esse magis bell pepper groundnut chickpea garbanzo zucchini burdock peanut soko aubergine fennel chicory corn arugula seakale cauliflower.</p>
+
+      <p>Sorrel wattle seed catsear artichoke caulie amaranth soybean cabbage. Mustard quandong gram epazote horseradish spring onion nori. Sorrel water spinach tigernut broccoli potato fennel arugula kombu welsh onion wakame komatsuna cress avocado jícama cucumber kohlrabi carrot quandong.</p>
+
+      <p>Pumpkin okra bunya nuts mustard napa cabbage squash kale chard soko. Rutabaga sorrel nori daikon burdock turnip greens chicory fava bean collard greens. Wakame radicchio desert raisin nori lotus root bunya nuts bitterleaf melon bell pepper. Brussels sprout soybean sea lettuce dandelion wattle seed beet greens collard greens coriander. Melon avocado garbanzo gram collard greens bamboo shoot.</p>
+
+      <p>Gumbo wakame bitterleaf black-eyed pea soybean celtuce tomatillo swiss chard taro jícama courgette shallot garlic. Epazote spinach chicory chickpea courgette celery quandong soko tomato courgette welsh onion scallion sierra leone bologi spring onion gumbo turnip greens amaranth. Parsley lentil amaranth melon shallot fennel groundnut broccoli.</p>
+
+      <p>Celery bitterleaf zucchini prairie turnip swiss chard dandelion rutabaga burdock welsh onion winter purslane leek. Okra komatsuna wattle seed chicory horseradish dandelion chickpea spring onion kale carrot catsear lotus root cress collard greens tomatillo. Shallot kombu potato garlic broccoli dulse brussels sprout green bean sea lettuce coriander fennel beetroot chickpea artichoke lettuce.</p>
+
+      <p>Cress kakadu plum bitterleaf melon water spinach brussels sprout arugula turnip tomatillo earthnut pea. Bush tomato spring onion celery cress corn beetroot endive squash summer purslane salad. Desert raisin tigernut carrot bitterleaf salsify radicchio. Shallot garbanzo melon ricebean celery fava bean mustard parsley spinach bamboo shoot grape sorrel caulie arugula soko winter purslane. Radish parsnip kombu tigernut bunya nuts bitterleaf spring onion water spinach epazote plantain.</p>
+
+      <p>Radish pea broccoli kakadu plum cabbage carrot garlic celery garbanzo lettuce coriander nori sea lettuce quandong. Jícama daikon squash gram kombu nori cauliflower courgette maize chicory beetroot celery. Parsley fennel watercress kakadu plum kombu garlic radicchio cabbage corn plantain.</p>
+
+      <p>Mustard onion cabbage endive silver beet arugula. Onion azuki bean asparagus sierra leone bologi celtuce horseradish arugula artichoke potato turnip greens green bean salad cress. Avocado seakale turnip squash parsley sorrel soko peanut fennel. Spinach arugula bunya nuts water spinach sierra leone bologi cress bitterleaf watercress bush tomato pea azuki bean melon beet greens garbanzo fennel earthnut pea dulse. Soko sweet pepper bitterleaf chard chickpea burdock epazote winter purslane salad kombu kohlrabi sierra leone bologi fava bean melon bell pepper.</p>
+
+  </div></div>
+  </body>
+</html>

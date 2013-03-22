@@ -1,0 +1,39 @@
+#!/usr/bin/ruby
+
+require 'rubygems'
+require 'cgi'
+require 'date'
+require 'json'
+require 'net/https'
+
+$SAFE=1
+
+now = DateTime.now
+
+c = CGI.new("html4")
+
+mode = c['openid.mode']
+
+if (mode == "error")
+  title = "Error"
+elsif (mode == "cancel")
+  title = "Cancelled"
+elsif (mode == "setup_needed")
+  title = "Setup Needed"
+else
+  title = "Success"
+end
+params = c.params
+
+table = "<table><tr><th>Key</th><th>Value</th></tr>"
+params.each { |k, v|
+  values = v.join(", ")
+  table << "<tr><td>#{k}</td><td>#{values}</td></tr>"
+}
+table << "</table>"
+c.out {
+  c.html {
+    "<head><title>#{title}!</title></head><body><h1>#{title}!</h1><p>#{now}</p>#{table}</body>"
+  }
+}
+

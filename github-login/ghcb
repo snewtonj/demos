@@ -1,0 +1,123 @@
+#!/usr/bin/ruby
+require 'rubygems'
+require 'cgi'
+require 'date'
+require 'json'
+require 'net/https'
+require 'syslog'
+
+#GET https://github.com/login/oauth/authorize?client_id=0f1bef6d6382a19a1636&&scope=&state=
+# expect callback at configured URL with code and state
+#POST https://github.com/login/oauth/access_token?code=
+# returns access_token=e72e16c7e42f292c6912e7710c838347ae178b4a&token_type=bearer
+# call api
+#$GET https://api.github.com/user?access_token=
+
+def getHttp(uri)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+  http
+end
+
+def logInfo(message)
+  @syslog.info(message)
+end
+
+def logError(message)
+  @syslog.err(message)
+end
+
+def getTokenForCode(code, state)
+  ghURL='https://github.com/login/oauth/access_token'
+  logInfo("calling #{ghURL} with #{code}")
+  uri = URI(ghURL)
+  http = getHttp(uri)
+  request = Net::HTTP::Post.new(uri.request_uri)
+  request['Accept'] = 'application/json'
+  clientId='github app client id'
+  clientSecret='github app client secret'
+  request.set_form_data({ 'client_id' => clientId, 'client_secret' => clientSecret, 'code' => code, 'state' => state })
+
+  response = http.request(request)
+
+  tokenresponse = CGI::unescape(response.body)
+  logInfo("got response #{tokenresponse}")
+  tokenObject = JSON.parse(response.body)
+  return tokenObject
+end
+
+def getLoggedInProfile(token)
+  profileURL = 'https://api.github.com/user?access_token=' + token
+  logInfo("calling #{profileURL}")
+  uri = URI(profileURL)
+  http = getHttp(uri)
+  request = Net::HTTP::Get.new(uri.request_uri)
+  request['Accept'] = 'application/json'
+  response = http.request(request)
+  profileresponse = CGI::unescape(response.body)
+  logInfo("got response #{profileresponse}")
+  return JSON.parse(profileresponse)
+end
+
+$SAFE=1
+@syslog = Syslog.open("github callback", Syslog::LOG_PID, Syslog::LOG_USER)
+
+
+now = DateTime.now
+
+c = CGI.new("html4")
+
+
+logInfo("processing request #{c.params}")
+
+begin
+  code = c['code'];
+  state = c['state'];
+
+  tokenObject = getTokenForCode(code, state);
+
+  if tokenObject.key?('error')
+    message = tokenObject['error']
+    logError("#{message}")
+    c.out { message }
+  else
+    logInfo("Got token #{tokenObject['token_type']} #{tokenObject['access_token']}")
+    userProfile = getLoggedInProfile(tokenObject['access_token'])
+    c.out { "Hello, #{userProfile['name']}!" }
+  end
+#  {
+  #  "login": "snewtonj",
+  #  "id": 1943939,
+  #  "avatar_url": "https://secure.gravatar.com/avatar/c87df92baeb4b1b6818f5c0f364ab380?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png",
+  #  "gravatar_id": "c87df92baeb4b1b6818f5c0f364ab380",
+  #  "url": "https://api.github.com/users/snewtonj",
+  #  "html_url": "https://github.com/snewtonj",
+  #  "followers_url": "https://api.github.com/users/snewtonj/followers",
+  #  "following_url": "https://api.github.com/users/snewtonj/following",
+  #  "gists_url": "https://api.github.com/users/snewtonj/gists{/gist_id}",
+  #  "starred_url": "https://api.github.com/users/snewtonj/starred{/owner}{/repo}",
+  #  "subscriptions_url": "https://api.github.com/users/snewtonj/subscriptions",
+  #  "organizations_url": "https://api.github.com/users/snewtonj/orgs",
+  #  "repos_url": "https://api.github.com/users/snewtonj/repos",
+  #  "events_url": "https://api.github.com/users/snewtonj/events{/privacy}",
+  #  "received_events_url": "https://api.github.com/users/snewtonj/received_events",
+  #  "type": "User",
+  #  "name": "Steven E. Newton",
+  #  "company": "JanRain, Inc",
+  #  "blog": "http://www.janrain.com",
+  #  "location": null,
+  #  "email": null,
+  #  "hireable": false,
+  #  "bio": "",
+  #  "public_repos": 4,
+  #  "followers": 0,
+  #  "following": 2,
+  #  "created_at": "2012-07-09T16:39:25Z",
+  #  "updated_at": "2013-03-11T18:10:42Z",
+  #  "public_gists": 0
+#  }
+rescue Exception => e
+    logError("#{e.message}\n#{e.backtrace.inspect}")
+    c.out { "{ 'message' : '#{e.message}' }" }
+end

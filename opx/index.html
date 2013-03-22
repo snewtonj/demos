@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="http://cdn.quilt.janrain.com/2.1.7/quilt.css" media="all" rel="stylesheet" type="text/css" />
+  <meta charset="UTF-8">
+  <title>Janrain Engage/OPX Demo</title>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+ <script type="text/javascript" src="prettyprint.js"></script>
+ <script type="text/javascript" src="cookie.js"></script>
+
+  <script type="text/javascript">
+(function() {
+    if (typeof window.janrain !== 'object') window.janrain = {};
+    window.janrain.settings = {};
+
+/* _______________ can edit below this line _______________ */
+    
+    janrain.settings.customOpenid = true;
+    janrain.settings.tokenAction = 'event';
+    janrain.settings.type = 'modal';
+    janrain.settings.appId = 'cbdbhhajobnadjjcmhac';
+    janrain.settings.customOpenidFlow = 'openid';
+    janrain.settings.customOpenidProviderId = 'customopenid' ;
+    janrain.settings.customOpenIdProviderName = 'Janrain OPX';
+    janrain.settings.customOpenIdProviderColor = '#729fcf';
+    janrain.settings.customOpenidIdentifier = 'http://opxdemo.janrainfederate.com';
+    //janrain.settings.customOpenidIdentifier = 'http://stoich-test.opx.janrain.ws';
+    janrain.settings.customOpenidLargeIcon = 'http://mulciber.janrain.com/qa/opx-test/tetrahedron.gif';
+    janrain.settings.customOpenidModalWidth = 640;
+    janrain.settings.customOpenidModalHeight = 480;
+    janrain.settings.providers = ["google","facebook", "twitter", "customopenid", "openid"];
+    janrain.settings.providersPerPage = '6';
+    janrain.settings.format = 'two column';
+    janrain.settings.actionText = 'Sign in using your account with';
+    janrain.settings.showAttribution = true;
+    janrain.settings.fontColor = '#666666';
+    janrain.settings.fontFamily = 'lucida grande, Helvetica, Verdana, sans-serif';
+    janrain.settings.buttonBorderColor = '#CCCCCC';
+    janrain.settings.backgroundColor = '#ffffff';
+    janrain.settings.width = '392';
+    janrain.settings.modalBorderRadius = '10';
+    janrain.settings.modalBorderOpacity = '0.5';
+    janrain.settings.modalBorderWidth = '10';
+
+    janrain.settings.language = 'en';
+    janrain.settings.linkClass = 'janrainEngage';
+
+    /* _______________ can edit above this line _______________ */
+
+    function isReady() { janrain.ready = true; };
+    if (document.addEventListener) {
+      document.addEventListener("DOMContentLoaded", isReady, false);
+    } else {
+      window.attachEvent('onload', isReady);
+    }
+
+    var e = document.createElement('script');
+    e.type = 'text/javascript';
+    e.id = 'janrainAuthWidget';
+
+    if (document.location.protocol === 'https:') {
+      e.src = 'https://rpxnow.com/js/lib/snewton/engage.js';
+    } else {
+      e.src = 'http://widget-cdn.rpxnow.com/js/lib/snewton/engage.js';
+    }
+
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(e, s);
+})();
+
+function janrainWidgetOnload() {
+  janrain.events.onProviderLoginToken.addHandler(function(response) {
+    janrain.engage.signin.modal.close();
+    $.ajax({
+       url: "profile.php?token="+response.token,
+       dataType: 'json',
+       success: function(data){
+	  user = data.profile.name.formatted;
+	  createCookie('user', user);
+          var ppTable = prettyPrint(data, { maxShorten: 72 })
+          document.getElementById('opxProfile').innerHTML = 'Profile from Engage/OPX:';
+          document.getElementById('opxProfile').appendChild(ppTable);
+	  setLogout(readCookie('user'));
+       }
+    });
+  });
+}
+
+function setLogout(name) {
+   if (name != null) {
+      document.getElementById('sign-out').innerHTML = 'Sign Out' + ' ' + name;
+      document.getElementById('sign-out').href = "#";
+   } else {
+      document.getElementById('sign-out').innerHTML = '';
+   }
+}
+
+</script>
+
+
+<script type="text/javascript">
+function my_logout() {
+  eraseCookie("user");
+  document.getElementById('opxProfile').innerHTML = '';
+  setLogout(null); 
+};
+</script>
+
+</head>
+
+<body>
+<div class="grid-block">
+<div class="col3 center_col">
+<a id = "signin_link" class="janrainEngage" href="#">Engage Sign-In</a>
+<br/>
+<a id="sign-out" onClick="my_logout()" href=""></a>
+<p id="login_token"></p>
+<script type="text/javascript">
+  user = readCookie('user');
+  if (user != null) {
+    setLogout(user);
+  }
+</script>
+<p><a href="register.html">Register</a></p>
+
+<div id="page">
+  <div class="content">
+    <h1>Janrain Engage OPX Demo (event based)</h1>
+    <div id="opxProfile"></div>
+    <ul class="lipsum">
+      <li>
+        <span>
+          Post-minimalism caravaggisti installation art cloisonnism color field painting neoclassicism manierism lyrical abstraction, new objectivity fauvism divisionism dada lettrism.
+        </span>
+      </li>
+      <li>
+        <span>
+          Veggies sunt bona vobis, proinde vos postulo esse magis cabbage yarrow water spinach artichoke squash groundnut komatsuna asparagus okra chickpea bitterleaf grape pea sprouts.
+        </span>
+      </li>
+      <li>
+        <span>
+          Banjo photo booth fixie +1, chillwave seitan meh selfies semiotics. Austin semiotics YOLO biodiesel, authentic tattooed raw denim aesthetic vinyl gluten-free cliche blue bottle art party cred.
+        </span>
+      </li>
+      <li class="last">
+        <span>
+          Revolutionary collaborative, communities visionary exploit monetize bricks-and-clicks vortals deliverables methodologies interactive models embrace convergence 24/365 redefine transition frictionless.
+        </span>
+      </li>
+    </ul>
+    <div class="clear"></div>
+    
+    <h2>Ipsum</h2>
+    <p>Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate B2C users after installed base benefits. Dramatically visualize customer directed convergence without revolutionary ROI. Professionally cultivate one-to-one customer service with robust ideas. Dynamically innovate resource-leveling customer service for state of the art customer service.</p>
+    <p>Efficiently unleash cross-media information without cross-media value. Quickly maximize timely deliverables for real-time schemas. Dramatically maintain clicks-and-mortar solutions without functional solutions. Completely synergize resource sucking relationships via premier niche markets.</p>
+  </div>
+</div>
+
+
+</div></div>
+</body>
+</html>

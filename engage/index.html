@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Janrain Engage/SSO Demo</title>
+
+  <script src="https://snewton.janrainsso.com/sso.js" type="text/javascript"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+  <script type="text/javascript" src="cookie.js"></script>
+
+  <script type="text/javascript">
+(function() {
+    if (typeof window.janrain !== 'object') window.janrain = {};
+    window.janrain.settings = {};
+
+/* _______________ can edit below this line _______________ */
+    
+    janrain.settings.tokenUrl = 'http://localhost:8080/sample-webapp/app/token';
+    janrain.settings.tokenAction = 'event';
+    janrain.settings.type = 'modal';
+    janrain.settings.appId = 'fkdmjenpokjahboiaklf';
+    janrain.settings.appUrl = 'https://steven.rpxnow.com';
+    janrain.settings.providers = ["google","twitter","openid"];
+    janrain.settings.providersPerPage = '6';
+    janrain.settings.format = 'two column';
+    janrain.settings.actionText = 'Sign in using your account with';
+    janrain.settings.showAttribution = true;
+    janrain.settings.fontColor = '#666666';
+    janrain.settings.fontFamily = 'lucida grande, Helvetica, Verdana, sans-serif';
+    janrain.settings.backgroundColor = '#ffffff';
+    janrain.settings.width = '392';
+    janrain.settings.modalBorderColor = '#000000';
+    janrain.settings.modalBorderRadius = '10';
+    janrain.settings.modalBorderWidth = '10';
+    janrain.settings.modalBorderOpacity = '0.5';
+    janrain.settings.modalBorderWidth = '10';
+
+    janrain.settings.buttonBorderColor = '#CCCCCC';
+    janrain.settings.buttonBorderRadius = '5';
+    janrain.settings.buttonBackgroundStyle = 'gradient';
+    janrain.settings.language = 'en';
+    janrain.settings.linkClass = 'janrainEngage';
+
+    /* _______________ can edit above this line _______________ */
+    function isReady() { janrain.ready = true; };
+    if (document.addEventListener) {
+      document.addEventListener("DOMContentLoaded", isReady, false);
+    } else {
+      window.attachEvent('onload', isReady);
+    }
+
+    var e = document.createElement('script');
+    e.type = 'text/javascript';
+    e.id = 'janrainAuthWidget';
+
+    if (document.location.protocol === 'https:') {
+      e.src = 'https://rpxnow.com/js/lib/snewton/engage.js';
+    } else {
+      e.src = 'http://widget-cdn.rpxnow.com/js/lib/snewton/engage.js';
+    }
+
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(e, s);
+
+})();
+
+function janrainWidgetOnload() {
+  janrain.events.onProviderLoginToken.addHandler(function(response) {
+    janrain.engage.signin.modal.close();
+    $.ajax({
+       url: "http://localhost:8080/sample-webapp/app/token?token="+response.token,
+       dataType: 'json',
+       success: function(data){
+	  alert("received a response!" + data);
+	  user = data.profile.name.formatted;
+	  createCookie('user', user);
+	  setLogout(readCookie('user'));
+       }
+    });
+  });
+}
+
+function setLogout(name) {
+   if (name != null) {
+      document.getElementById('sign-out').innerHTML = 'Sign Out' + ' ' + name;
+      document.getElementById('sign-out').href = "#";
+   } else {
+      document.getElementById('sign-out').innerHTML = '';
+   }
+}
+
+</script>
+
+<script type="text/javascript">
+ JANRAIN.SSO.ENGAGE.check_login ({
+  sso_server: 'http://localhost:8080/sso',
+  token_uri: 'http:/localhost:8080/sample-webapp/app/token',
+  xd_receiver: 'http://localhost/rpx_xdcomm.html',
+  logout_uri: 'http://localhost/sample-webapp/logout'
+ });
+</script>
+
+<script type="text/javascript">
+function my_logout() {
+  eraseCookie("user");
+  setLogout(null); 
+  JANRAIN.SSO.ENGAGE.logout({
+      sso_server: 'http://localhost:8080/sso',
+      logout_uri: 'http://localhost:8080/sample-webapp/logout'
+  });
+};
+</script>
+
+</head>
+
+<body>
+<!-- <link rel="stylesheet" href="style.css"> -->
+
+<a id = "signin_link" class="janrainEngage" href="#">Engage Sign-In</a>
+<br/>
+<a id="sign-out" onClick="my_logout()" href=""></a>
+
+<script type="text/javascript">
+  user = readCookie('user');
+  if (user != null) {
+    setLogout(user);
+  }
+</script>
+   
+
+<div id="page">
+  <div class="content">
+    <h1>Steven's Engage SSO Test</h1>
+    <h2>localhost SSO to Production Engage</h2>
+
+    <h2>Veggie Ipsum</h2>
+<p class="veggie">Beetroot bamboo shoot tatsoi ricebean broccoli salad celery fava bean water spinach. Bok choy taro eggplant celery seakale celtuce bok choy cress. Plantain spring onion courgette coriander gumbo asparagus rutabaga potato. </p>
+<p class="veggie">Scallion seakale zucchini sweet pepper kale garlic radish dulse beet greens kohlrabi. Azuki bean parsnip lettuce cress okra zucchini. Bitterleaf mung bean rutabaga silver beet chickpea desert raisin broccoli spring onion. Bok choy caulie pea beetroot corn courgette watercress tomatillo earthnut pea salsify kale eggplant garlic dandelion arugula broccoli rabe. Green bean garlic melon fennel turnip ricebean amaranth. </p>
+<p class="veggie">Bok choy sorrel sea lettuce carrot summer purslane fava bean desert raisin wattle seed gram courgette cabbage burdock lettuce bell pepper peanut squash chicory lotus root. Winter purslane chickpea celtuce earthnut pea coriander artichoke salsify tomato green bean water chestnut swiss chard ricebean. Beetroot courgette celery beetroot tigernut sweet pepper earthnut pea prairie turnip seakale lotus root salsify bunya nuts water chestnut pea arugula swiss chard pea sprouts tomatillo. </p>
+<p class="veggie">Daikon quandong radish spring onion tomato melon welsh onion beetroot daikon soybean bush tomato azuki bean salad wattle seed. Bitterleaf shallot green bean grape aubergine peanut radicchio maize cabbage gumbo bok choy sorrel kakadu plum parsley parsnip. Horseradish pumpkin chicory kakadu plum radish lotus root watercress dandelion artichoke courgette tomatillo maize. </p>
+<p class="veggie">Daikon arugula bamboo shoot cucumber lentil celery rutabaga earthnut pea garlic sea lettuce horseradish quandong komatsuna celtuce bitterleaf. Lentil lettuce plantain celtuce avocado salad desert raisin jícama salsify radicchio groundnut dulse cucumber soybean bamboo shoot summer purslane sweet pepper mung bean. Salad chickweed catsear grape shallot tigernut seakale. Celery coriander radish parsnip fava bean tigernut chard. Coriander maize grape endive corn tigernut pumpkin spring onion summer purslane cauliflower garbanzo lotus root courgette black-eyed pea napa cabbage. </p>
+<p class="veggie">Bush tomato quandong broccoli silver beet courgette watercress squash. Tomatillo yarrow turnip celery broccoli rabe endive prairie turnip maize welsh onion. Wakame broccoli cress spinach lotus root bell pepper kombu plantain sorrel silver beet chickweed eggplant kale. </p>
+<p class="veggie">Zucchini rutabaga spinach carrot maize salad mustard salsify. Corn epazote soko sorrel courgette fava bean bitterleaf rock melon onion spinach garlic corn catsear coriander salad. Tatsoi gumbo parsley soko komatsuna celery salsify chickweed aubergine taro brussels sprout tomatillo zucchini potato bamboo shoot chickpea. Welsh onion squash corn tomatillo tomato mustard bush tomato. Asparagus seakale kale mustard komatsuna chickpea wattle seed quandong lentil broccoli lettuce daikon pumpkin napa cabbage celtuce salsify onion kohlrabi. </p>
+    <div class="clear"></div>
+  </div>
+</div>
+
+
+
+</body>
+</html>

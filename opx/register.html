@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href="http://cdn.quilt.janrain.com/2.1.7/quilt.css" media="all" rel="stylesheet" type="text/css" />
+  <title>Janrain Engage/OPX Demo Registration</title>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+ <script type="text/javascript" src="prettyprint.js"></script>
+ <script type="text/javascript" src="cookie.js"></script>
+
+  <script type="text/javascript">
+(function() {
+    if (typeof window.janrain !== 'object') window.janrain = {};
+    window.janrain.settings = {};
+
+/* _______________ can edit below this line _______________ */
+    
+    janrain.settings.customOpenid = true;
+    janrain.settings.tokenAction = 'event';
+    janrain.settings.type = 'modal';
+    janrain.settings.appId = 'cbdbhhajobnadjjcmhac';
+    janrain.settings.customOpenidFlow = 'openid';
+    janrain.settings.customOpenidProviderId = 'customopenid' ;
+    janrain.settings.customOpenIdProviderName = 'Janrain OPX';
+    janrain.settings.customOpenIdProviderColor = '#729fcf';
+    janrain.settings.customOpenidIdentifier = 'http://opxdemo.janrainfederate.com';
+    janrain.settings.customOpenidLargeIcon = 'http://mulciber.janrain.com/qa/opx-test/tetrahedron.gif';
+    janrain.settings.customOpenidModalWidth = 640;
+    janrain.settings.customOpenidModalHeight = 480;
+    janrain.settings.providers = ["google","facebook", "twitter", "customopenid", "openid"];
+    janrain.settings.providersPerPage = '6';
+    janrain.settings.format = 'two column';
+    janrain.settings.actionText = 'Sign in using your account with';
+    janrain.settings.showAttribution = true;
+    janrain.settings.fontColor = '#666666';
+    janrain.settings.fontFamily = 'lucida grande, Helvetica, Verdana, sans-serif';
+    janrain.settings.buttonBorderColor = '#CCCCCC';
+    janrain.settings.backgroundColor = '#ffffff';
+    janrain.settings.width = '392';
+    janrain.settings.modalBorderRadius = '10';
+    janrain.settings.modalBorderOpacity = '0.5';
+    janrain.settings.modalBorderWidth = '10';
+
+    janrain.settings.language = 'en';
+    janrain.settings.linkClass = 'janrainEngage';
+
+    /* _______________ can edit above this line _______________ */
+
+    function isReady() { janrain.ready = true; };
+    if (document.addEventListener) {
+      document.addEventListener("DOMContentLoaded", isReady, false);
+    } else {
+      window.attachEvent('onload', isReady);
+    }
+
+    var e = document.createElement('script');
+    e.type = 'text/javascript';
+    e.id = 'janrainAuthWidget';
+
+    if (document.location.protocol === 'https:') {
+      e.src = 'https://rpxnow.com/js/lib/snewton/engage.js';
+    } else {
+      e.src = 'http://widget-cdn.rpxnow.com/js/lib/snewton/engage.js';
+    }
+
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(e, s);
+})();
+
+function janrainWidgetOnload() {
+  janrain.events.onProviderLoginToken.addHandler(function(response) {
+    janrain.engage.signin.modal.close();
+    $.ajax({
+       url: "get_user.php?token="+response.token,
+       dataType: 'json',
+       success: function(data){
+	  user = data.profile.name.formatted;
+	  createCookie('user', user);
+          var ppTable = prettyPrint(data)
+          document.getElementById('opxProfile').innerHTML = 'Profile from Engage/OPX:';
+          document.getElementById('opxProfile').appendChild(ppTable);
+	  setLogout(readCookie('user'));
+       }
+    });
+  });
+}
+
+function setLogout(name) {
+   if (name != null) {
+      document.getElementById('sign-out').innerHTML = 'Sign Out' + ' ' + name;
+      document.getElementById('sign-out').href = "#";
+   } else {
+      document.getElementById('sign-out').innerHTML = '';
+   }
+}
+
+</script>
+
+
+<script type="text/javascript">
+function my_logout() {
+  eraseCookie("user");
+  document.getElementById('opxProfile').innerHTML = '';
+  setLogout(null); 
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="page">
+  <div class="grid-block">
+    <div class="col3 center_col"><h1>Janrain Engage OPX Demo Registration</h1>
+    <form action="register.php" method="post">
+      <table>
+      <tr><td align="right">Username:</td><td><input type="text" name="username" value=""/></td></tr>
+      <tr><td align="right">Password:</td><td><input type="password" name="password" value=""></td></tr>
+      <tr><td align="center" colspan="2"><h2>Optional Data</h2><td></tr>
+        <tr><td></td><td><table>
+        <tr><td align="right">Nickname</td><td><input type="text" name="sreg_nickname" value=""/></td></tr>
+        <tr><td align="right">email address</td><td><input type="text" name="sreg_email" value=""/></td></tr>
+        <tr><td align="right">Full Name</td><td><input type="text" name="sreg_fullname" value=""/></td></tr>
+        <tr><td align="right">Postal Code</td><td><input type="text" name="sreg_postcode" value=""/></td></tr>
+        <tr><td align="right">Birthdate (YYYY-MM-DD)</td><td><input type="text" name="sreg_dob" value=""/></td></tr>
+        <tr><td align="right">Gender</td><td><input type="text" name="sreg_gender" value=""/></td></tr>
+        <tr><td align="right">Country</td><td>
+          <select name="sreg_country">
+          <option value="AQ">Antarctica</option>
+          <option value="CA">Canada</option>
+          <option value="FR">France</option>
+          <option value="IN">India</option>
+          <option value="ES">Spain</option>
+          <option value="GB">United Kingdom</option>
+          <option value="US" selected>United States</option>
+          </select>
+        </td></tr>
+        <tr><td align="right">Language</td><td>
+          <select name="sreg_language">
+            <option value="bn">Bengali</option>
+            <option value="en" selected>English</option>
+            <option value="fr">French</option>
+            <option value="hi">Hindi</option>
+            <option value="es">Spanish</option>
+            <option value="te">Telugu</option>
+          </select>
+        </td></tr>
+        <tr><td align="right">Timezone</td><td>
+          <select name="sreg_timezone">
+            <option value="Europe/Paris">France</option>
+            <option value="Asia/Kolkata">India</option>
+            <option value="Europe/Madrid">Spain</option>
+            <option value="Europe/London">United Kingdom</option>
+            <option value="America/Los_Angeles" selected>US Pacific</option>
+            <option value="America/Denver">US Mountain</option>
+            <option value="America/Chicago">US Central</option>
+            <option value="America/New_York">US Eastern</option>
+          </select>
+        </td></tr>
+        <tr><td align="right">Description</td><td><textarea name="blob" value=""></textarea></td></tr>
+        </table></td>
+        </tr>
+      </table>
+    <input type="submit" name="Register"/>
+    </form>
+  </div>
+  </div>
+</div>
+
+
+
+</body>
+</html>

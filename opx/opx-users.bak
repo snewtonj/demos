@@ -1,0 +1,6 @@
+username,password,sreg_nickname,sreg_email,sreg_fullname,sreg_postcode,sreg_dob,sreg_gender,sreg_country,sreg_language,sreg_timezone,blob
+steven,qH379_ZT7dJS,steven,steven@janrain.com,Steven E. Newton,97204,1964-06-30,M,US,en,America/Los_Angeles,http://en.wikipedia.org/wiki/Blobfish
+guest,QD2_tg-N9Sly,guest,info@janrain.com,Janrain Guest,97204,2004-01-01,,US,en,America/Los_Angeles,http://www.janrain.com
+nobody,ihzYLZaZWHmi,Nobody,nobody@nowhere.com,Nobody,20505,1947-09-18,M,US,en,America/New_York,http://www.diced.jp/~fbi/illust/blobfish2.jpg
+larry1,4CTilf3mHmb2,larry,info@janrain.com,Larry Drebes,97204,,M,US,en,America/Los_Angeles,http://nrksuper.no/super/files/2009/10/liopleurodon1T.jpg
+test,test,test,info@janrain.com,Test,97204,,,US,en,,http://en.wikipedia.org/wiki/Lists_of_tests

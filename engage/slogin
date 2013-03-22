@@ -1,0 +1,141 @@
+#!/usr/bin/ruby
+
+require 'rubygems'
+require 'cgi'
+require 'date'
+require 'json'
+require 'net/https'
+require 'syslog'
+
+syslog = Syslog.open("idsverify", Syslog::LOG_PID, Syslog::LOG_USER)
+
+$SAFE=1
+
+users = {
+  'cm' =>  { 
+    'user' => 'cm',
+    'username' => 'cm',
+    'sreg_nickname' => 'cratermoon',
+    'sreg_email' => 'cm@cmdev.com',
+    'sreg_fullname' => 'Crater Moon',
+    'sreg_postcode' => '97219',
+    'sreg_dob' => '1969-01-01',
+    'sreg_gender' => 'nota',
+    'sreg_country' => 'United States',
+    'sreg_language' => 'Klingon',
+    'sreg_timezone' => 'PST/PDT',
+    'blob' => '{ stuff goes here }'
+  },
+  'sen' => {
+    'user' => 'sen',
+    'username' => 'sen',
+    'sreg_nickname' => 'sen',
+    'sreg_email' => 'steven@janrain.com',
+    'sreg_fullname' => 'Steven E. Newton',
+    'sreg_postcode' => '97204',
+    'sreg_dob' => '1964-06-30',
+    'sreg_gender' => 'M',
+    'sreg_country' => 'United States',
+    'sreg_language' => 'English',
+    'sreg_timezone' => 'PST/PDT',
+    'blob' => "http://en.wikipedia.org/wiki/Blobfish"
+  },
+  'guest' => {
+    'user' => 'guest',
+    'username' => 'guest',
+    'sreg_nickname' => 'guest',
+    'sreg_email' => 'info@janrain.com',
+    'sreg_fullname' => 'Janrain Guest',
+    'sreg_postcode' => '97204',
+    'sreg_dob' => '2004-01-01',
+    'sreg_gender' => '',
+    'sreg_country' => 'United States',
+    'sreg_language' => 'English',
+    'sreg_timezone' => 'PST/PDT',
+    'blob' => "Registration is hard. We make it easy."
+  },
+  'nobody' => {
+    'user' => 'nobody',
+    'username' => 'nobody',
+    'sreg_nickname' => 'nobody',
+    'sreg_fullname' => 'Nobody',
+    'sreg_postcode' => '20505',
+    'sreg_dob' => '1947-09-18',
+    'sreg_gender' => 'M',
+    'sreg_country' => 'United States',
+    'sreg_language' => 'English',
+    'sreg_timezone' => 'EST/EDT',
+    'blob' => "http://www.diced.jp/~fbi/illust/blobfish2.jpg"
+  }
+}
+
+configs = {
+  'oldstoich' => {
+    'apiKey' => 'old stoich opx key',
+    'postBackURL' => 'https://opxsen.opx.janrain.ws/ows_auth',
+    'returnToURL' => 'https://opxsen.opx.janrain.ws/ows_return',
+  },
+  'newstoich' => {
+    'apiKey' => 'new stoich opx key',
+    'postBackURL' => 'https://stoich-test.opx.janrain.ws/ows_auth',
+    'returnToURL' => 'https://stoich-test.opx.janrain.ws/ows_return',
+  }
+}
+
+
+now = DateTime.now
+
+c = CGI.new("html4")
+
+requestId = c['request_id']
+if (requestId.length == 6)
+  opxconfig = configs['oldstoich']
+else
+  opxconfig = configs['newstoich']
+end
+paramj = JSON.generate(c.params)
+syslog.info("processing request #{paramj}")
+
+username = c['username'] + ""
+
+username.sub!('/','')
+
+if (username == "" || username == "/") 
+  #username = '/sen'
+  syslog.info("No user supplied, requesting login")
+  c.out { c.html { '<head><title>Login</title></head><body><h1>Login</h1><form method="get" action="">Username: <input type="text" name="username" value=""/><br/>Password: <input type="password" name="password" value=""><input type="hidden" name="request_id" value="'<<requestId<<'"><input type="submit" name="Login"/></body>' } }
+  #c.out( 'status' => '302 Moved', 'Location' => "/opx.html") { "Moved" }
+else
+  profile = users[username]
+  if (profile.nil?)
+    profile = users['nobody']
+  else
+    profile = users[username]
+  end
+  user = profile['username']
+  syslog.info("Got user #{user} with profile #{profile}")
+
+  uri = URI(opxconfig['postBackURL'])
+  syslog.info("authenticating #{user} with #{uri}")
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.open_timeout = 3
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  request = Net::HTTP::Post.new(uri.request_uri)
+  request_data = { 'request_id' => requestId, 'api_key' => opxconfig['apiKey'], 'no_prompt' => 'true' } 
+  request_data.merge!(profile)
+  request.set_form_data (request_data) 
+
+  response = http.request(request)
+  syslog.info("got #{response.code}")
+
+  if(response.code == '200')
+    c.out( 'status' => '302 Moved', 'Location' => "#{opxconfig['returnToURL']}?request_id=#{requestId}") { "Moved" }
+  else
+    syslog.err("Got #{response.code} #{response.body} from Identity Services")
+    c.out {
+      c.html { "That's an error: #{response.code} #{response.body} (#{now})" }
+    }
+  end
+end
+

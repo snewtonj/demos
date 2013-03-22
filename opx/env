@@ -1,0 +1,32 @@
+#!/usr/bin/ruby
+require 'date'
+require 'net/https'
+
+
+#table = "<table><tr><th>Key</th><th>Value</th></tr>\n"
+#ENV.each { |k,v|  table<<"<tr><td>#{k}</td><td>#{v}</td></tr>\n" }
+#table<<"</table>\n"
+#paramj = JSON.generate(ARGV)
+#table<<"<pre>#{paramj}</pre>"
+apiKey = 'opx key'
+postBackURL = 'https://opxdemo.janrainfederate.com/ows_auth'
+returnToURL = 'https://opxdemo.janrainfederate.com/ows_return'
+
+uri = URI(postBackURL)
+http = Net::HTTP.new(uri.host, uri.port)
+http.use_ssl = true
+http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+request = Net::HTTP::Post.new(uri.request_uri)
+requestId = ARGV[0]
+username = ARGV[1]
+request_data = { 'request_id' => requestId, 'api_key' => apiKey, 'username' => username, 'no_prompt' => 'true' } 
+request.set_form_data (request_data) 
+
+response = http.request(request)
+
+if(response.code == '200')
+  c.out( 'status' => '302 Moved', 'Location' => "#{returnToURL}?request_id=#{requestId}") { "Moved" }
+else
+  now = DateTime.now
+  puts "That's an error: #{response.code} #{response.body} (#{now})" 
+end

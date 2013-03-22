@@ -1,0 +1,46 @@
+#!/usr/bin/ruby
+
+require 'rubygems'
+require 'cgi'
+require 'date'
+require 'json'
+require 'net/https'
+require 'openid/version'
+require 'openid/consumer'
+require 'openid/extensions/sreg'
+require 'openid/extensions/pape'
+require 'openid/store/filesystem'
+require 'syslog'
+
+#$SAFE=1
+
+syslog = Syslog.open("rubyopenid", Syslog::LOG_PID, Syslog::LOG_USER)
+
+c = CGI.new("html4")
+identifier = c['username'][0]
+begin
+  store = OpenID::Store::Filesystem.new('/tmp')
+  session = { }
+  consumer = OpenID::Consumer.new(session, store)
+  oidreq = consumer.begin(identifier)
+  sregreq = OpenID::SReg::Request.new
+  sregreq.request_fields(['email', 'nickname', 'dob', 'fullname', 'postcode', 'gender', 'language', 'timezone', 'country'], false)
+  oidreq.add_extension(sregreq)
+  realm = 'http://localhost'
+  return_to = 'http://localhost/cgi-bin/openidfinish'
+  if oidreq.send_redirect?(realm, return_to, false)
+    redirect_to = oidreq.redirect_url('http://localhost', 'http://localhost/cgi-bin/openidfinish', false)
+    syslog.info("redirecting to " + CGI::unescape(redirect_to))
+
+    c.out( 'status' => '302 Moved', 'Location' => redirect_to) { "Moved" }
+  else
+    c.out { oidreq.html_markup('http://localhost', 'http://localhost/cgi-bin/openidfinish', false, {'id' => 'openid_form'}) }
+  end
+rescue Exception => e
+  
+  syslog.err("error: " + e.to_s.gsub('%', ''))
+  now = DateTime.now
+  c.out {
+    c.html { "That's an error: #{e} (#{now})" }
+  }
+end

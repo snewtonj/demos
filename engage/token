@@ -1,0 +1,54 @@
+#!/usr/bin/ruby
+
+require 'rubygems'
+require 'cgi'
+require 'date'
+require 'json'
+require 'net/https'
+require 'syslog'
+
+$SAFE=1
+syslog = Syslog.open("token", Syslog::LOG_PID, Syslog::LOG_USER)
+
+apiKey='rpxnow engage key'
+rpxURL='https://rpxnow.com/api/v2/auth_info'
+
+now = DateTime.now
+
+c = CGI.new("html4")
+
+
+token = c['token']
+syslog.info("processing request #{c.params}")
+uri = URI(rpxURL)
+
+http = Net::HTTP.new(uri.host, uri.port)
+http.use_ssl = true
+http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+request = Net::HTTP::Post.new(uri.request_uri)
+
+request.set_form_data({ 'token' => token, 'apiKey' => apiKey, 'format' => 'json', 'extended' => 'false' })
+
+response = http.request(request)
+
+tokenresponse = response.body
+syslog.info("got response #{tokenresponse}")
+profile = JSON.parse(response.body)
+stat = profile["stat"]
+if (stat == "fail")
+  code = profile['err']['code']
+  msg = profile['err']['msg']
+  c.out { "that's an error: code: #{code} message: #{msg}" }
+else
+  profile["token"] = token
+  profile["date"] = now
+
+  displayName = profile["profile"]["displayName"];
+  if (displayName.nil?)
+    displayName = 'Stranger'
+  end
+  dNameCookie = CGI::Cookie.new('name' => "cmDisplayName", 'value' => displayName, 'path' => '/')
+  profileCookie = CGI::Cookie.new('name' => "cmProfile", 'value' => JSON.generate(profile['profile']), 'path' => '/')
+  puts c.header( "cookie" => [dNameCookie, profileCookie], 'status' => '302 Moved', 'Location' => '/welcome.html')
+end

@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<link href="http://cdn.quilt.janrain.com/2.1.8/quilt.css" media="all" rel="stylesheet" type="text/css" />
+<style>
+span[class^="janrain-provider-icon-"]{-webkit-background-size:cover;-moz-background-size:cover;-o-background-size:cover;background-size:cover;background-repeat:no-repeat;background-position:center center}
+</style>
+<script type="text/javascript">
+(function() {
+    if (typeof window.janrain !== 'object') window.janrain = {};
+    if (typeof window.janrain.settings !== 'object') window.janrain.settings = {};
+    
+    janrain.settings.type = 'modal';
+    janrain.settings.customOpenid = true;
+    janrain.settings.customOpenidFlow = 'openid';
+    janrain.settings.customOpenIdProviderName = { 'old-opx':'Old Opx', 'janrain-opx':'Janrain OPX' };
+    janrain.settings.customOpenIdProviderColor = { 'old-opx':'#729fcf', 'janrain-opx':'#729fcf' };
+    janrain.settings.customOpenidProviderId = ['old-opx' , 'janrain-opx' ];
+    janrain.settings.customOpenidIdentifier = { 'old-opx': 'http://opxsen.opx.janrain.ws', 'janrain-opx': 'https://opxdemo.janrainfederate.com' };
+    janrain.settings.customOpenidLargeIcon = { 'old-opx': 'http://janrain.com/wp-content/themes/janrain/favicon.ico', 'janrain-opx':'http://localhost/moon.png' };
+    janrain.settings.providers = ['google', 'janrain-opx','old-opx','facebook'];
+    janrain.settings.appId = 'cbdbhhajobnadjjcmhac';
+    janrain.settings.appUrl = 'https://snewton.rpxnow.com';
+    janrain.settings.actionText = 'OPX Engage Test Login';
+    janrain.settings.tokenUrl = 'http://localhost/cgi-bin/token';
+
+    function isReady() { janrain.ready = true; };
+    if (document.addEventListener) {
+      document.addEventListener("DOMContentLoaded", isReady, false);
+    } else {
+      window.attachEvent('onload', isReady);
+    }
+
+    var e = document.createElement('script');
+    e.type = 'text/javascript';
+    e.id = 'janrainAuthWidget';
+
+    if (document.location.protocol === 'https:') {
+      e.src = 'https://rpxnow.com/js/lib/snewton/engage.js';
+    } else {
+      e.src = 'http://widget-cdn.rpxnow.com/js/lib/snewton/engage.js';
+    }
+
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(e, s);
+})();
+</script>
+<title>Steven's Janrain Engage Test Application</title>
+</head>
+<body>
+<div class="grid-block"> <div class="col3 center_col">
+<h1>Steven's Janrain OPX/Engage Test Application</h1>
+<a class="janrainEngage" href="#">Sign-In</a>
+<!--
+<p id="janrainEngageEmbed">Login or GTFO </p>
+-->
+</div></div>
+</body>
+</html>
