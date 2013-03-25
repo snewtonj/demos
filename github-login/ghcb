@@ -5,6 +5,7 @@ require 'date'
 require 'json'
 require 'net/https'
 require 'syslog'
+require 'webkeychain'
 
 #GET https://github.com/login/oauth/authorize?client_id=0f1bef6d6382a19a1636&&scope=&state=
 # expect callback at configured URL with code and state
@@ -28,15 +29,16 @@ def logError(message)
   @syslog.err(message)
 end
 
-def getTokenForCode(code, state)
+def exchangeTokenForCode(code, state)
   ghURL='https://github.com/login/oauth/access_token'
   logInfo("calling #{ghURL} with #{code}")
   uri = URI(ghURL)
   http = getHttp(uri)
   request = Net::HTTP::Post.new(uri.request_uri)
   request['Accept'] = 'application/json'
-  clientId='github app client id'
-  clientSecret='github app client secret'
+  keys = WebKeychain.loadKeychain
+  clientId=keys['github']['id']
+  clientSecret=keys['github']['secret']
   request.set_form_data({ 'client_id' => clientId, 'client_secret' => clientSecret, 'code' => code, 'state' => state })
 
   response = http.request(request)
@@ -75,7 +77,7 @@ begin
   code = c['code'];
   state = c['state'];
 
-  tokenObject = getTokenForCode(code, state);
+  tokenObject = exchangeTokenForCode(code, state);
 
   if tokenObject.key?('error')
     message = tokenObject['error']
@@ -121,3 +123,5 @@ rescue Exception => e
     logError("#{e.message}\n#{e.backtrace.inspect}")
     c.out { "{ 'message' : '#{e.message}' }" }
 end
+
+# example: https://github.com/login/oauth/authorize?client_id=clientId&state=somerandomkey

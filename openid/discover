@@ -6,19 +6,22 @@ require 'date'
 require 'json'
 require 'net/https'
 require 'syslog'
+require 'webkeychain'
 
 syslog = Syslog.open("idsdiscover", Syslog::LOG_PID, Syslog::LOG_USER)
 
 #$SAFE=1
 
+keys = WebKeychain.loadKeychain
+
 configs = {
   'oldopx' => {
-    'apiKey' => 'old opx api key',
+    'apiKey' => keys['oldopx']['apiKey'],
     'postBackURL' => 'https://opxsen.opx.janrain.ws/ows_auth',
     'returnToURL' => 'https://opxsen.opx.janrain.ws/ows_return',
   },
   'newopx' => {
-    'apiKey' => 'new opx api key',
+    'apiKey' => keys['newopx']['apiKey'],
     'postBackURL' => 'https://opx.cmdev.com/postback',
     'returnToURL' => 'https://opx.cmdev.com/return',
   }

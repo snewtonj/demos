@@ -6,35 +6,44 @@ require 'date'
 require 'json'
 require 'net/https'
 require 'syslog'
+require 'webkeychain'
 
 $SAFE=1
-syslog = Syslog.open("token", Syslog::LOG_PID, Syslog::LOG_USER)
 
-apiKey='rpxnow engage key'
-rpxURL='https://rpxnow.com/api/v2/auth_info'
+def getUserProfile(token)
+
+  keys = WebKeychain.loadKeychain
+  apiKey=keys['engage']['apiKey']
+
+  rpxURL='https://rpxnow.com/api/v2/auth_info'
+  uri = URI(rpxURL)
+
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+  request = Net::HTTP::Post.new(uri.request_uri)
+  request.set_form_data({ 'token' => token, 'apiKey' => apiKey, 'format' => 'json', 'extended' => 'false' })
+
+  response = http.request(request)
+
+  tokenresponse = response.body
+  @syslog.info("got response #{tokenresponse}")
+  return JSON.parse(response.body)
+end
+
+@syslog = Syslog.open("token", Syslog::LOG_PID, Syslog::LOG_USER)
 
 now = DateTime.now
 
 c = CGI.new("html4")
 
+@syslog.info("processing request #{c.params}")
 
 token = c['token']
-syslog.info("processing request #{c.params}")
-uri = URI(rpxURL)
 
-http = Net::HTTP.new(uri.host, uri.port)
-http.use_ssl = true
-http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+profile = getUserProfile(token)
 
-request = Net::HTTP::Post.new(uri.request_uri)
-
-request.set_form_data({ 'token' => token, 'apiKey' => apiKey, 'format' => 'json', 'extended' => 'false' })
-
-response = http.request(request)
-
-tokenresponse = response.body
-syslog.info("got response #{tokenresponse}")
-profile = JSON.parse(response.body)
 stat = profile["stat"]
 if (stat == "fail")
   code = profile['err']['code']

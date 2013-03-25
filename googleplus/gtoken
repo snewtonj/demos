@@ -6,54 +6,79 @@ require 'date'
 require 'json'
 require 'net/https'
 require 'syslog'
+require 'webkeychain'
 
 $SAFE=1
-syslog = Syslog.open("gtoken", Syslog::LOG_PID, Syslog::LOG_USER)
 
-clientId='google app client id'
-clientSecret='google app client secret'
-gURL = 'https://accounts.google.com/o/oauth2/token'
+
+def exchangeTokenForCode(authcode)
+  gURL = 'https://accounts.google.com/o/oauth2/token'
+  uri = URI(gURL)
+  keys = WebKeychain.loadKeychain
+  clientId=keys['google']['id']
+  clientSecret=keys['google']['secret']
+
+  begin
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+    request = Net::HTTP::Post.new(uri.request_uri)
+
+    request.set_form_data({ 'code' => authcode, 'client_id' => clientId, 'client_secret' => clientSecret, 'redirect_uri' => 'http://localhost/cgi-bin/gtoken', 'grant_type' => 'authorization_code' })
+
+    response = http.request(request)
+
+    tokenresponse = response.body
+    return JSON.parse(tokenresponse)
+  rescue Exception => e
+    @syslog.err(" exception getting token #{e.message}")
+    return "{}"
+  end
+end
+
+def getLoggedInProfile(token)
+  # Now have a bearer token, use it to get the user's profile
+  uri = URI('https://www.googleapis.com/plus/v1/people/me?access_token='+token)
+  begin
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    @syslog.info("calling #{uri}")
+    request = Net::HTTP::Get.new(uri.request_uri)
+    response = http.request(request)
+
+    profile = JSON.parse(response.body)
+    @syslog.info("got profile #{profile}")
+    return profile
+  rescue Exception => e
+    @syslog.err(" exception getting token #{e.message}")
+    return { 'error' => e.message }
+  end
+end
+
+@syslog = Syslog.open("gtoken", Syslog::LOG_PID, Syslog::LOG_USER)
 
 now = DateTime.now
 
 c = CGI.new("html4")
 
 
-syslog.info("processing request #{c.params}")
+@syslog.info("processing request #{c.params}")
 authcode = c['code']
-uri = URI(gURL)
 
-http = Net::HTTP.new(uri.host, uri.port)
-http.use_ssl = true
-http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-
-request = Net::HTTP::Post.new(uri.request_uri)
-
-request.set_form_data({ 'code' => authcode, 'client_id' => clientId, 'client_secret' => clientSecret, 'redirect_uri' => 'http://localhost/cgi-bin/gtoken', 'grant_type' => 'authorization_code' })
-
-response = http.request(request)
-
-tokenresponse = response.body
-responseJSON = JSON.parse(tokenresponse)
-if (responseJSON.key?('error'))
-  msg = responseJSON['error'];
-  syslog.err("got error #{msg}")
+response = exchangeTokenForCode(authcode)
+if (response.key?('error'))
+  msg = response['error']
+  @syslog.err("got error #{msg}")
   c.out { "that's an error: message: #{msg}" }
 else
-  accessToken = responseJSON['access_token']
+  token = response['access_token']
 
-  # Now have a bearer token, use it to get the user's profile
-  uri = URI('https://www.googleapis.com/plus/v1/people/me?access_token='+accessToken)
-  http = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = true
-  http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-  syslog.info("calling #{uri}")
-  request = Net::HTTP::Get.new(uri.request_uri)
-  response = http.request(request)
-
-  profile = JSON.parse(response.body)
-  syslog.info("got profile #{profile}")
-  displayName = profile["displayName"];
+  profile = getLoggedInProfile(token)
+  @syslog.info("profile #{profile}")
+  profile['processingTimestamp'] = now
+  displayName = profile["displayName"]
   if (displayName.nil?)
     displayName = 'Stranger'
   end
@@ -61,3 +86,5 @@ else
   profileCookie = CGI::Cookie.new('name' => "cmProfile", 'value' => JSON.generate(profile), 'path' => '/')
   puts c.header( "cookie" => [dNameCookie, profileCookie], 'status' => '302 Moved', 'Location' => '/welcome.html')
 end
+
+# example: https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=153059540897.apps.googleusercontent.com&redirect_uri=http://localhost/cgi-bin/gtoken&scope=https://www.googleapis.com/auth/plus.login&approval_prompt=force
