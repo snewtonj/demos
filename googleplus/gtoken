@@ -69,9 +69,10 @@ authcode = c['code']
 
 response = exchangeTokenForCode(authcode)
 if (response.key?('error'))
+  response['processingTimestamp'] = now
   msg = response['error']
   @syslog.err("got error #{msg}")
-  c.out { "that's an error: message: #{msg}" }
+  c.out { JSON.generate(response) }
 else
   token = response['access_token']
 
@@ -82,9 +83,11 @@ else
   if (displayName.nil?)
     displayName = 'Stranger'
   end
-  dNameCookie = CGI::Cookie.new('name' => "cmDisplayName", 'value' => displayName, 'path' => '/')
-  profileCookie = CGI::Cookie.new('name' => "cmProfile", 'value' => JSON.generate(profile), 'path' => '/')
-  puts c.header( "cookie" => [dNameCookie, profileCookie], 'status' => '302 Moved', 'Location' => '/welcome.html')
+  #dNameCookie = CGI::Cookie.new('name' => "cmDisplayName", 'value' => displayName, 'path' => '/')
+  #profileCookie = CGI::Cookie.new('name' => "cmProfile", 'value' => JSON.generate(profile), 'path' => '/')
+  #puts c.header( "cookie" => [dNameCookie, profileCookie], 'status' => '302 Moved', 'Location' => '/welcome.html')
+  # TODO callback
+  c.out { '<script>window.opener.displayProfile('+JSON.generate(profile)+');window.close();</script>' }
 end
 
 # example: https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=153059540897.apps.googleusercontent.com&redirect_uri=http://localhost/cgi-bin/gtoken&scope=https://www.googleapis.com/auth/plus.login&approval_prompt=force

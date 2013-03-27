@@ -74,19 +74,32 @@ c = CGI.new("html4")
 logInfo("processing request #{c.params}")
 
 begin
-  code = c['code'];
-  state = c['state'];
+  callbackFunction = 'displayProfile'
+  code = c['code']
+  state = c['state']
 
+  if (c['callback'] != '')
+    callbackFunction = c['callback']
+  end
+    
   tokenObject = exchangeTokenForCode(code, state);
 
+  tokenObject['processingTimestamp'] = now
   if tokenObject.key?('error')
     message = tokenObject['error']
     logError("#{message}")
-    c.out { message }
+    c.out { tokenObject }
   else
     logInfo("Got token #{tokenObject['token_type']} #{tokenObject['access_token']}")
     userProfile = getLoggedInProfile(tokenObject['access_token'])
-    c.out { "Hello, #{userProfile['name']}!" }
+    #displayName = userProfile["displayName"]
+    #if (displayName.nil?)
+    #  displayName = 'Stranger'
+    #end
+    #dNameCookie = CGI::Cookie.new('name' => "cmDisplayName", 'value' => displayName, 'path' => '/')
+    #profileCookie = CGI::Cookie.new('name' => "cmProfile", 'value' => JSON.generate(userProfile), 'path' => '/')
+    #puts c.header( "cookie" => [dNameCookie, profileCookie], 'status' => '302 Moved', 'Location' => '/welcome.html')
+    c.out { '<script>'+callbackFunction+'('+JSON.generate(userProfile)+');window.close();</script>' }
   end
 #  {
   #  "login": "snewtonj",
