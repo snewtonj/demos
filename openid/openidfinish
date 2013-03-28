@@ -66,7 +66,7 @@ case status
     end
     dNameCookie = CGI::Cookie.new('name' => "cmDisplayName", 'value' => displayName, 'path' => '/')
     profileCookie = CGI::Cookie.new('name' => "cmProfile", 'value' => JSON.generate(profile), 'path' => '/')
-    c.out( 'cookie' => [dNameCookie, profileCookie], 'status' => '302 Moved', 'Location' => '/owelcome.html') { "Moved" }
+    c.out( 'cookie' => [dNameCookie, profileCookie] ) { '<script>window.opener.displayProfile('+JSON.generate(profile)+');window.close();</script>' }
   else
 end
 

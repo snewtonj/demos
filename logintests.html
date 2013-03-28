@@ -28,6 +28,13 @@ function gPlusAuth() {
   var authWindow = window.open(URL, 'authWindow', 'width=600,height=600,toolbar=0,menubar=0,location=0,status=1,scrollbars=1,resizable=1,left=0,top=0');
   console.log("authorizing "+authWindow.location); 
 }
+function openIdAuth() {
+  username = document.getElementById('username').value;
+  var URL="/cgi-bin/openid?"+
+          "username="+username;
+  console.log("authorizing "+username); 
+  var authWindow = window.open(URL, 'authWindow', 'width=600,height=600,toolbar=0,menubar=0,location=0,status=1,scrollbars=1,resizable=1,left=0,top=0');
+}
 function displayProfile(profile) {
   console.log("displaying profile "+profile.url);
   var ppTable = prettyPrint(profile, { maxShorten: 72 })
@@ -53,14 +60,14 @@ function initRandomState() {
 <h1>Steven's OpenID token exchange Test Application</h1>
 <div class="page">
   <div class="wrapper" id="content">
-  <form action="/cgi-bin/openid" method="post">
-     <table>
-       <tr><td align="right">Username:</td><td><input type="text" name="username" size="60" value=""/></td></tr>
-       <tr><td align="right"><input type="submit" value="OpenID Login" name="OpenID Login"/></td></tr>
-     </table>
-  </form>
-  <button value="Github Login" name="Github Login" onclick="githubAuth();">Github Login</button>
-  <button value="Google+ Login" name="Google+ Login" onclick="gPlusAuth();">Google+ Login</button>
+  <p>
+   <table>
+      <tr><td align="right">Username:</td><td><input id="username" type="text" name="username" size="60" value=""/></td></tr>
+      <tr><td align="right"><button value="OpenID Login" name="OpenID Login" onclick="openIdAuth();">OpenID Login</button></td></tr>
+   </table>
+  </p>
+  <p><button value="Github Login" name="Github Login" onclick="githubAuth();">Github Login</button></p>
+  <p><button value="Google+ Login" name="Google+ Login" onclick="gPlusAuth();">Google+ Login</button></p>
   <div id="profileTable">User Profile</div>
   </div>
 </div>
