@@ -8,7 +8,7 @@ module WebKeychain
 
  def WebKeychain.loadKeychain(dir=@keychainDir)
      begin
-       YAML.load(File.open("#{dir}/.webkeychain"))
+       YAML.load(File.open("#{dir}/webkeychain"))
      rescue ArgumentError => e
        puts "Unable to open keychain: #{e.message}"
      end
